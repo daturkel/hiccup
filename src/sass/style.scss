@@ -1,0 +1,184 @@
+// // definitions
+$family-sans-serif: 'Open Sans', 'Segoe UI', 'Tahoma', sans-serif;
+$family-titles: 'Rubik', 'Helvetica', 'Arial', sans-serif;
+$icon-size: 40px;
+$top-size: 75px;
+$button-pad: 35px;
+
+
+// // mixins
+// https://gist.github.com/johnferrie/3836468
+@mixin filter($filter-type,$filter-amount) {
+  -webkit-filter: $filter-type+unquote('(#{$filter-amount})');
+  -moz-filter: $filter-type+unquote('(#{$filter-amount})');
+  -ms-filter: $filter-type+unquote('(#{$filter-amount})');
+  -o-filter: $filter-type+unquote('(#{$filter-amount})');
+  filter: $filter-type+unquote('(#{$filter-amount})');
+}
+
+// https://gist.github.com/bmuenzenmeyer/6181032
+//usage: @include shift([property],[duration],[easing]);
+@mixin shift($property: all, $duration: .3s, $ease: linear) {
+	-webkit-transition: $property $duration $ease;
+	-moz-transition: $property $duration $ease;
+	-o-transition: $property $duration $ease;
+	transition: $property $duration $ease;
+}
+
+@mixin svg-mask($color,$size,$url,$p1,$p2) {
+  background: $color;
+  mask: url($url) no-repeat $p1 $p2;
+  mask: $size;
+  -webkit-mask: url($url) no-repeat $p1 $p2;
+  -webkit-mask-size: $size;
+}
+
+// // imports
+@import '../ext/bulma/sass/utilities/_all.sass';
+@import '../ext/bulma/sass/base/_all.sass';
+@import '../ext/bulma/sass/grid/columns.sass';
+@import '../ext/bulma/sass/elements/title.sass';
+@import '../ext/bulma/sass/elements/container.sass';
+@import '../ext/bulma/sass/elements/content.sass';
+
+// after-bulma variables:
+$light-color: $grey-light;
+
+// baguette customization
+#baguetteBox-overlay .full-image img {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
+/* Dan Turkel custom style below */
+
+* {
+  text-decoration-skip-ink: auto;
+}
+
+a {
+  @include shift(color,333ms,ease);
+  &:focus, &:active {
+    outline: none;
+  }
+}
+
+.is-fullheight {
+  height: 100vh;
+  max-height: 100vh;
+}
+
+.title, .subtitle {
+  font-family: $family-titles;
+}
+
+.title {
+  font-weight: 700;
+  a {
+    color: $title-color;
+  }
+
+  a:hover {
+    color: $link;
+  }
+}
+
+.subtitle {
+  font-weight: 500;
+}
+
+#wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: calc(45vh - 118px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  .columns:nth-last-child(2) {
+    flex: 1;
+  }
+
+  .columns:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.caption {
+  margin-top: 1.5rem;
+  margin-bottom: .5rem;
+  font-style: italic;
+  font-size: .9rem;
+  padding-right: 1rem;
+}
+
+@include until($tablet) {
+  .nav ul li {
+    display: inline;
+    &:after {
+      content: " - "
+    }
+    &:last-child:after {
+      content: none
+    }
+  }
+
+  .caption {
+    padding-right: 0rem;
+    font-size: 1rem;
+  }
+
+  #wrapper {
+    padding-top: 1rem;
+  }
+}
+
+.active {
+  color: $grey-light;
+}
+
+a.photo-link {
+  @include shift(all,333ms,ease);
+  display: block;
+  border-bottom: white solid 1px;
+  &:hover {
+    border-bottom: $subtitle-color solid 1px;
+  }
+  line-height: 0;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.content h2.title {
+  margin-bottom: 0.5rem;
+}
+
+// baguette-box overrides
+.baguetteBox-button, .baguetteBox-button:hover, .baguetteBox-button:focus {
+  background-color: rgba(255,255,255,0);
+  border-radius: 0;
+  border: 0;
+  outline: 0;
+}
+
+.baguetteBox-button {
+  &:hover polyline {
+    @include shift(stroke,333ms,ease)
+    stroke: rgba(255,255,255,0.75);
+  }
+}
+
+// asciinema overrides
+
+.asciinema {
+  .asciicast {
+    margin-top: 0!important;
+    margin-bottom: 1em!important;
+    iframe {
+      width: 100%!important;
+    }
+  }
+}

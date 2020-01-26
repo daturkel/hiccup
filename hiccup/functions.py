@@ -86,3 +86,7 @@ def run_task_on_matches(filepath: Path, ctx: dict, task: Task, match_pattern: st
             logging.info(f" Running task {task.name} on {filepath_}:")
             ctx = task.run(Path(filepath_), deepcopy(ctx))
     return ctx
+
+
+def empty_directory(filepath: Path, ctx: dict, directory: str):
+    directory = Path(directory)

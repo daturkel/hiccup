@@ -7,4 +7,6 @@ class HiccupConfig:
         config_filename = str(config_filename.with_suffix(""))
         self.config_module = import_module(config_filename)
         self.watch_tasks = self.config_module.WATCH_TASKS
+        self.clean_tasks = self.config_module.CLEAN_TASKS
+        self.run_tasks = self.config_module.RUN_TASKS
         self.globals = self.config_module.GLOBALS

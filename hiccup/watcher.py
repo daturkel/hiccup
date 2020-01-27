@@ -19,6 +19,7 @@ class GlobWatcher(DefaultDirWatcher):
         else:
             self.match_patterns = match_patterns
         self.skip_patterns = listify(skip_patterns)
+        self._sanitize_patterns()
         super().__init__(root_path)
 
     def should_watch_file(self, entry):
@@ -28,3 +29,7 @@ class GlobWatcher(DefaultDirWatcher):
         ) and not any(
             entry.globmatch(pattern, flags=GLOBSTAR) for pattern in self.skip_patterns
         )
+
+    def _sanitize_patterns(self):
+        self.match_patterns = [str(Path(pattern)) for pattern in self.match_patterns]
+        self.skip_patterns = [str(Path(pattern)) for pattern in self.skip_patterns]

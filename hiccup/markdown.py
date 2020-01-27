@@ -1,14 +1,13 @@
 from html import unescape
+import logging
 from typing import Tuple
 
 import marko
 import frontmatter
-import smartypants
 
 
 def _parse_markdown(text: str) -> str:
-    content = unescape(smartypants.convert_quotes(text))
-    html_content = marko.convert(content).rstrip()
+    html_content = marko.convert(text).rstrip()
     return html_content
 
 

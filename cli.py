@@ -32,9 +32,8 @@ def cli(ctx, config_filename):
 def watch(ctx, match_patterns, skip_patterns, watch_dir):
     logging.info(f"Watching directory {watch_dir}")
     config = ctx.obj["config"]
-    task_list = TaskList(
-        tasks=config.watch_tasks, watch_dir=watch_dir, globals_=config.globals
-    )
+    task_ctx = {"__globals": config.globals, "__root": watch_dir}
+    task_list = TaskList(tasks=config.watch_tasks, ctx=task_ctx)
     watcher_kwargs = {
         "match_patterns": match_patterns if match_patterns else None,
         "skip_patterns": skip_patterns if skip_patterns else None,
@@ -44,8 +43,7 @@ def watch(ctx, match_patterns, skip_patterns, watch_dir):
     ):
         for change_type, filepath in changes:
             filepath = Path(filepath)
-            rel_filepath = filepath.relative_to(Path(watch_dir))
-            logging.info(f"File {rel_filepath} {change_type.name}!")
+            logging.info(f"File {filepath} {change_type.name}!")
             task_list.run_tasks(filepath, change_to_str(change_type))
 
 
@@ -53,7 +51,27 @@ def watch(ctx, match_patterns, skip_patterns, watch_dir):
 @click.option("-d", "--deep", is_flag=True)
 @click.pass_context
 def clean(ctx, deep):
-    pass
+    config = ctx.obj["config"]
+    task_ctx = {"__globals": config.globals, "__root": ""}
+    task_list = TaskList(tasks=config.clean_tasks, ctx=task_ctx)
+    logging.info("Running clean tasks")
+    task_list.run_tasks()
+
+
+@cli.command()
+@click.option("-c", "--clean", is_flag=True)
+@click.argument("target_dir", nargs=1, default="./", type=Path)
+@click.pass_context
+def run(ctx, clean, target_dir):
+    config = ctx.obj["config"]
+    task_ctx = {"__globals": config.globals, "__root": ""}
+    if clean:
+        logging.info("Running clean tasks")
+        TaskList(tasks=config.clean_tasks, ctx=task_ctx).run_tasks()
+    task_ctx["__root"] = target_dir
+    task_list = TaskList(tasks=config.run_tasks, ctx=task_ctx)
+    logging.info("Running tasks")
+    task_list.run_tasks()
 
 
 if __name__ == "__main__":

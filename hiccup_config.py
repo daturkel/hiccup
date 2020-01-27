@@ -5,8 +5,6 @@ from hiccup.tasks import Task
 
 
 md_task = Task(
-    match_patterns="**/*.md",
-    change_types="change",
     steps=[
         (fn.parse_markdown_with_template, {"template_dir": "./src/templates"}),
         (
@@ -15,28 +13,52 @@ md_task = Task(
         ),
     ],
     name="parse markdown",
-    skip_patterns="ext/**/*",
+    change_types="change",
+    match_patterns="./src/**/*.md",
+    skip_patterns="./src/ext/**/*",
 )
 
-WATCH_TASKS = [
+img_task = Task(
+    steps=[(fn.copy_files, {"out_dir": "./dist"})],
+    name="copy images",
+    change_types="change",
+    match_patterns=["./src/img/**/*"],
+)
+
+j2_task = Task(
+    steps=[
+        (fn.run_task_on_matches, {"task": md_task, "match_pattern": "./src/**/*.md"})
+    ],
+    name="recreate all pages",
+    change_types="change",
+    match_patterns="./src/templates/**/*.j2",
+    skip_patterns=None,
+)
+
+sass_task = Task(
+    steps=[(fn.compile_sass, {"in_dir": "./src/sass", "out_dir": "./dist/css"})],
+    name="compile sass",
+    change_types="change",
+    match_patterns=["./src/sass/**/*.sass", "./src/sass/**/*.scss"],
+    skip_patterns=None,
+)
+
+WATCH_TASKS = [j2_task, md_task, sass_task, img_task]
+
+CLEAN_TASKS = [
     Task(
-        match_patterns="templates/**/*.j2",
-        change_types="change",
-        steps=[(fn.run_task_on_matches, {"task": md_task, "match_pattern": "**/*.md"})],
-        name="recreate all pages",
-        skip_patterns=None,
-    ),
-    md_task,
-    Task(
-        match_patterns=["sass/**/*.sass", "sass/**/*.scss"],
-        change_types="change",
-        steps=[(fn.compile_sass, {"in_dir": "sass", "out_dir": "./dist/css"})],
-        name="compile sass",
-        skip_patterns=None,
-    ),
+        steps=[(fn.empty_directory, {"directory": "./dist"})], name="clean dist folder"
+    )
 ]
 
-CLEAN_TASKS = []
+RUN_TASKS = [
+    j2_task,
+    sass_task,
+    Task(
+        steps=[(fn.copy_files, {"__filepath": "./src/img", "out_dir": "./dist"})],
+        name="copy all images",
+    ),
+]
 
 GLOBALS = {
     "pages": [

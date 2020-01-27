@@ -5,9 +5,10 @@ from copy import deepcopy
 from glob import glob
 from jinja2 import TemplateNotFound, Environment, FileSystemLoader
 import logging
-from wcmatch.pathlib import Path
 import sass
+import shutil
 from typing import Tuple, Optional
+from wcmatch.pathlib import Path
 
 # functions for filenames
 
@@ -17,7 +18,7 @@ def noop(filepath: Path, ctx: dict):
 
 
 def compile_sass(filepath: Path, ctx: dict, in_dir: str, out_dir: str):
-    in_dir = ctx.get("__watch_dir", Path("")) / Path(in_dir)
+    in_dir = Path(in_dir)
     out_dir = Path(out_dir)
     sass.compile(dirname=(in_dir, out_dir), output_style="compressed")
     return ctx
@@ -52,13 +53,27 @@ def parse_markdown_with_template(filepath: Path, ctx: dict, template_dir: str):
 def write_text_to_file(
     filepath: Path, ctx: dict, text: str, out_dir: str, ext: Optional[str] = None
 ):
-    filepath = filepath.relative_to(ctx.get("__watch_dir", ""))
-    full_filepath = Path(out_dir) / filepath
-    full_filepath.parent.mkdir(parents=True, exist_ok=True)
+    rel_filepath = filepath.relative_to(ctx["__root"])
+    new_filepath = Path(out_dir) / rel_filepath
+    new_filepath.parent.mkdir(parents=True, exist_ok=True)
     if ext is not None:
-        full_filepath = full_filepath.with_suffix(ext)
-    with open(full_filepath, "w") as f:
+        new_filepath = new_filepath.with_suffix(ext)
+    with open(new_filepath, "w") as f:
         f.write(text)
+    return ctx
+
+
+def copy_files(filepath: Path, ctx: dict, out_dir: str):
+    out_dir = Path(out_dir)
+    rel_filepath = filepath.relative_to(ctx["__root"])
+    new_filepath = Path(out_dir) / rel_filepath
+    if filepath.is_file():
+        new_filepath.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(filepath, new_filepath)
+    elif filepath.is_dir():
+        if new_filepath.exists():
+            shutil.rmtree(new_filepath)
+        shutil.copytree(filepath, new_filepath)
     return ctx
 
 
@@ -81,12 +96,16 @@ def skip_remaining_steps_and_tasks(filepath: Path, ctx: dict):
 def run_task_on_matches(filepath: Path, ctx: dict, task: Task, match_pattern: str):
     for filepath_ in glob(str(match_pattern), recursive=True):
         filepath_ = Path(filepath_)
-        rel_filepath = filepath_.relative_to(ctx["__watch_dir"])
-        if task.should_run(rel_filepath, change_type="", skip_change_type=True):
+        if task.should_run(filepath_):
             logging.info(f" Running task {task.name} on {filepath_}:")
-            ctx = task.run(Path(filepath_), deepcopy(ctx))
+            ctx = task.run(deepcopy(ctx), filepath_)
     return ctx
 
 
 def empty_directory(filepath: Path, ctx: dict, directory: str):
     directory = Path(directory)
+    tmp_nm = directory.parent / ("__" + directory.name)
+    directory.rename(tmp_nm)
+    shutil.rmtree(tmp_nm)
+    Path.mkdir(directory)
+    return ctx

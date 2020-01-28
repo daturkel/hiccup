@@ -8,11 +8,11 @@ from typing import List, Optional
 import click
 import watchgod
 
-from hiccup.config import HiccupConfig
-from hiccup.logger import setup_logger
-from hiccup.tasks import TaskList
-from hiccup.utils import change_to_str
-from hiccup.watcher import GlobWatcher
+from .config import HiccupConfig
+from .logger import setup_logger
+from .tasks import TaskList
+from .utils import change_to_str
+from .watcher import GlobWatcher
 
 
 @click.group()
@@ -74,5 +74,9 @@ def run(ctx, clean, target_dir):
     task_list.run_tasks()
 
 
-if __name__ == "__main__":
+def main():
     cli(obj={})
+
+
+if __name__ == "__main__":
+    main()

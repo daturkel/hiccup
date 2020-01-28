@@ -1,0 +1,38 @@
+name: Python application
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2.0.0
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install Poetry
+      uses: dschep/install-poetry-action@v1.3
+    - name: Cache Poetry venv
+      uses: actions/cache@v1
+      id: cache
+      with:
+        path: ~/virtualenvs
+        key: poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          poetry-${{ hashFiles('**/poetry.lock') }}
+    - name: Set Poetry config
+      run: |
+        poetry config settings.virtualenvs.in-project false
+        poetry config settings.virtualenvs.path ~/.virtualenvs
+    - name: Install Dependencies via Poetry
+      run: poetry install
+      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Code Quality
+      run: poetry run black . --check
+    - name: Test with pytest
+      run: |
+        pip install pytest
+        pytest

@@ -9,6 +9,7 @@ import click
 import watchgod
 
 from .config import HiccupConfig
+from .generate_config import TEMPLATE
 from .logger import setup_logger
 from .tasks import TaskList
 from .utils import change_to_str
@@ -16,12 +17,13 @@ from .watcher import GlobWatcher
 
 
 @click.group()
-@click.option("-c", "--config", "config_filename", default="./hiccup_config.py")
+@click.option(
+    "-c", "--config", "config_filename", default="./hiccup_config.py", type=Path
+)
 @click.pass_context
 def cli(ctx, config_filename):
     setup_logger()
-    config = HiccupConfig(Path(config_filename))
-    ctx.obj["config"] = config
+    ctx.obj["config_filename"] = config_filename
 
 
 @cli.command()
@@ -31,7 +33,7 @@ def cli(ctx, config_filename):
 @click.pass_context
 def watch(ctx, match_patterns, skip_patterns, watch_dir):
     logging.info(f"Watching directory {watch_dir}")
-    config = ctx.obj["config"]
+    config = HiccupConfig(ctx.obj["config_filename"])
     task_ctx = {"__globals": config.globals, "__root": watch_dir}
     task_list = TaskList(tasks=config.watch_tasks, ctx=task_ctx)
     watcher_kwargs = {
@@ -51,7 +53,7 @@ def watch(ctx, match_patterns, skip_patterns, watch_dir):
 @click.option("-d", "--deep", is_flag=True)
 @click.pass_context
 def clean(ctx, deep):
-    config = ctx.obj["config"]
+    config = HiccupConfig(ctx.obj["config_filename"])
     task_ctx = {"__globals": config.globals, "__root": ""}
     task_list = TaskList(tasks=config.clean_tasks, ctx=task_ctx)
     logging.info("Running clean tasks")
@@ -63,15 +65,24 @@ def clean(ctx, deep):
 @click.argument("target_dir", nargs=1, default="./", type=Path)
 @click.pass_context
 def run(ctx, clean, target_dir):
-    config = ctx.obj["config"]
+    config = HiccupConfig(ctx.obj["config_filename"])
     task_ctx = {"__globals": config.globals, "__root": ""}
     if clean:
-        logging.info("Running clean tasks")
+        logging.info("Running tasks")
         TaskList(tasks=config.clean_tasks, ctx=task_ctx).run_tasks()
     task_ctx["__root"] = target_dir
     task_list = TaskList(tasks=config.run_tasks, ctx=task_ctx)
     logging.info("Running tasks")
     task_list.run_tasks()
+
+
+@cli.command()
+@click.option("-p", "--path", type=Path, default="./hiccup_config.py")
+@click.option("-f", "--force", is_flag=True)
+def generate_config(path, force):
+    if force or not Path(path).exists():
+        with open(path, "w") as f:
+            f.write(TEMPLATE)
 
 
 def main():

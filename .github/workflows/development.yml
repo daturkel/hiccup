@@ -25,7 +25,7 @@ jobs:
       id: cache
       with:
         path: ~/.virtualenvs
-        key: poetry-${{ hashFiles('poetry.lock') }}
+        key: poetry-venv-${{ hashFiles('poetry.lock') }}
 
     - name: Install Dependencies via Poetry
       run: poetry install

@@ -110,7 +110,10 @@ class TaskList:
             if skip_checks or task.should_run(filepath, change_type)
         ]
         if to_run:
-            logging.info(f" Running tasks for {filepath}:")
+            if filepath is not None:
+                logging.info(f" Running tasks for {filepath}:")
+            else:
+                logging.info(f" Running tasks:")
             num_to_run = len(to_run)
             for i, task in enumerate(to_run):
                 if self.ctx.get("__skip_remaining_tasks", False):

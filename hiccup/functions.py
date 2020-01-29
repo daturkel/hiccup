@@ -74,8 +74,9 @@ def copy_files(
 ):
     out_dir = Path(out_dir)
     if relative_to is not None:
-        filepath = filepath.relative_to(relative_to)
-    new_filepath = Path(out_dir) / filepath
+        new_filepath = Path(out_dir) / filepath.relative_to(relative_to)
+    else:
+        new_filepath = Path(out_dir) / filepath
     if filepath.is_file():
         new_filepath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(filepath, new_filepath)

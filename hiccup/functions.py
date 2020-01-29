@@ -51,10 +51,16 @@ def parse_markdown_with_template(filepath: Path, ctx: dict, template_dir: str):
 
 
 def write_text_to_file(
-    filepath: Path, ctx: dict, text: str, out_dir: str, ext: Optional[str] = None
+    filepath: Path,
+    ctx: dict,
+    text: str,
+    out_dir: str,
+    ext: Optional[str] = None,
+    relative_to: Optional[str] = None,
 ):
-    rel_filepath = filepath.relative_to(ctx["__root"])
-    new_filepath = Path(out_dir) / rel_filepath
+    if relative_to is not None:
+        filepath = filepath.relative_to(relative_to)
+    new_filepath = Path(out_dir) / filepath
     new_filepath.parent.mkdir(parents=True, exist_ok=True)
     if ext is not None:
         new_filepath = new_filepath.with_suffix(ext)
@@ -63,10 +69,13 @@ def write_text_to_file(
     return ctx
 
 
-def copy_files(filepath: Path, ctx: dict, out_dir: str):
+def copy_files(
+    filepath: Path, ctx: dict, out_dir: str, relative_to: Optional[str] = None
+):
     out_dir = Path(out_dir)
-    rel_filepath = filepath.relative_to(ctx["__root"])
-    new_filepath = Path(out_dir) / rel_filepath
+    if relative_to is not None:
+        filepath = filepath.relative_to(relative_to)
+    new_filepath = Path(out_dir) / filepath
     if filepath.is_file():
         new_filepath.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(filepath, new_filepath)

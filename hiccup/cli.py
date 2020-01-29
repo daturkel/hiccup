@@ -62,15 +62,13 @@ def clean(ctx, deep):
 
 @cli.command()
 @click.option("-c", "--clean", is_flag=True)
-@click.argument("target_dir", nargs=1, default="./", type=Path)
 @click.pass_context
-def run(ctx, clean, target_dir):
+def run(ctx, clean):
     config = HiccupConfig(ctx.obj["config_filename"])
     task_ctx = {"__globals": config.globals, "__root": ""}
     if clean:
         logging.info("Running tasks")
         TaskList(tasks=config.clean_tasks, ctx=task_ctx).run_tasks()
-    task_ctx["__root"] = target_dir
     task_list = TaskList(tasks=config.run_tasks, ctx=task_ctx)
     logging.info("Running tasks")
     task_list.run_tasks()

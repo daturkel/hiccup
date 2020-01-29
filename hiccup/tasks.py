@@ -112,8 +112,6 @@ class TaskList:
         if to_run:
             if filepath is not None:
                 logging.info(f" Running tasks for {filepath}:")
-            else:
-                logging.info(f" Running tasks:")
             num_to_run = len(to_run)
             for i, task in enumerate(to_run):
                 if self.ctx.get("__skip_remaining_tasks", False):
@@ -121,4 +119,7 @@ class TaskList:
                     break
                 logging.info(f"  Task {i+1} of {num_to_run}: {task.name}")
                 self.ctx = task.run(deepcopy(self.ctx), filepath)
-            logging.info(f"Done with tasks for {filepath}!")
+            if filepath is not None:
+                logging.info(f"Done with tasks for {filepath}!")
+            else:
+                logging.info(f"Done with tasks!")

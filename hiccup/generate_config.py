@@ -1,14 +1,17 @@
 import click
 from pathlib import Path
 
-TEMPLATE = """from collections import OrderedDict
+from . import __version__
+
+TEMPLATE = f"""from collections import OrderedDict
 
 import hiccup.functions as fn
 from hiccup.tasks import Task
 
 # Your hiccup config file is a plain old python file.
 #
-# It *must* contain four specific variables:
+# It *must* contain five specific variables:
+# - VERSION: a string indicating the version of Hiccup that generated this config
 # - WATCH_TASKS: a list of tasks that are run, if triggered, with the `hiccup watch` command
 # - CLEAN_TASKS: a list of tasks that are run with the `hiccup clean` command
 # - RUN_TASKS: a list of tasks that are run with the `hiccup run` command
@@ -33,15 +36,17 @@ from hiccup.tasks import Task
 #   file must *not* match in order to trigger this step
 #
 
+VERSION = "{__version__}"
+
 img_task = Task(
-    steps=[(fn.copy_files, {"out_dir": "./dist"})],
+    steps=[(fn.copy_files, {{"out_dir": "./dist"}})],
     name="copy images",
     change_types="change",
     match_patterns=["./src/img/**/*"],
 )
 
 all_img_task = Task(
-    steps=[(fn.copy_files, {"__filepath": "./src/img", "out_dir": "./dist"})],
+    steps=[(fn.copy_files, {{"__filepath": "./src/img", "out_dir": "./dist"}})],
     name="copy images",
     change_types="change",
 )
@@ -50,11 +55,11 @@ WATCH_TASKS = [img_task]
 
 CLEAN_TASKS = [
     Task(
-        steps=[(fn.empty_directory, {"directory": "./dist"})], name="clean dist folder"
+        steps=[(fn.empty_directory, {{"directory": "./dist"}})], name="clean dist folder"
     )
 ]
 
 RUN_TASKS = [all_img_task]
 
-GLOBALS = {}
+GLOBALS = {{}}
 """

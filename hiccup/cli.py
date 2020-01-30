@@ -1,7 +1,9 @@
 import importlib
 import logging
 from wcmatch.pathlib import Path
+import shutil
 import sys
+import time
 import toml
 from typing import List, Optional
 
@@ -75,12 +77,25 @@ def run(ctx, clean):
 
 
 @cli.command()
-@click.option("-p", "--path", type=Path, default="./hiccup_config.py")
+@click.option("-p", "--path", type=Path, default="hiccup_config.py")
 @click.option("-f", "--force", is_flag=True)
 def generate_config(path, force):
-    if force or not Path(path).exists():
-        with open(path, "w") as f:
-            f.write(TEMPLATE)
+    if force and path.exists():
+        ts = str(int(time.time()))
+        backup_path = path.parent / (path.stem + ts + path.suffix)
+        logging.info(
+            f"Config file at {path} already exists, backing up to {backup_path}"
+        )
+        shutil.copy2(path, backup_path)
+        logging.info(f"Writing new config template to {path}")
+    elif force or not path.exists():
+        logging.info(f"Writing new config template to {path}")
+    else:
+        raise FileExistsError(
+            f"Config file already exists at {path}. Use hiccup generate-config --force to overwrite it."
+        )
+    with open(path, "w") as f:
+        f.write(TEMPLATE)
 
 
 def main():
